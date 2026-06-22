@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>GenAI Interview Prep — RAG & Agents</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: Arial, sans-serif; font-size: 14px; color: #1a1a1a; background: #f5f5f5; }
+  .container { max-width: 960px; margin: 0 auto; padding: 24px 16px; }
+  h1 { font-size: 24px; font-weight: 700; margin-bottom: 4px; color: #111; }
+  .subtitle { font-size: 13px; color: #666; margin-bottom: 24px; }
+  .nav { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 24px; border-bottom: 2px solid #ddd; padding-bottom: 16px; }
+  .nav button { background: #fff; border: 1px solid #ccc; border-radius: 6px; padding: 7px 14px; font-size: 13px; cursor: pointer; color: #444; }
+  .nav button.active { background: #1a56db; color: #fff; border-color: #1a56db; font-weight: 600; }
+  .nav button:hover { background: #e8f0fe; }
+  .section { display: none; }
+  .section.active { display: block; }
+  .sec-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #888; margin: 20px 0 10px; }
+  .card { background: #fff; border: 1px solid #ddd; border-radius: 8px; margin-bottom: 10px; overflow: hidden; }
+  .card-header { padding: 12px 16px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; font-weight: 600; font-size: 14px; color: #1a1a1a; background: #fff; }
+  .card-header:hover { background: #f9f9f9; }
+  .toggle { font-size: 20px; color: #888; font-weight: 400; line-height: 1; }
+  .card-body { display: none; padding: 14px 16px; border-top: 1px solid #eee; background: #fafafa; }
+  .card-body.open { display: block; }
+  .card-body p { font-size: 13px; color: #444; line-height: 1.7; margin-bottom: 8px; }
+  ul { padding-left: 18px; }
+  li { font-size: 13px; color: #444; line-height: 1.7; margin-bottom: 6px; }
+  li b { color: #1a1a1a; }
+  .tag { display: inline-block; font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 100px; margin-right: 4px; }
+  .tag-g { background: #d1fae5; color: #065f46; }
+  .tag-b { background: #dbeafe; color: #1e40af; }
+  .tag-a { background: #fef3c7; color: #92400e; }
+  .tag-r { background: #fee2e2; color: #991b1b; }
+  .tag-p { background: #ede9fe; color: #5b21b6; }
+  .metric-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 10px; margin-top: 10px; }
+  .metric-card { background: #fff; border: 1px solid #ddd; border-radius: 6px; padding: 10px 12px; }
+  .metric-name { font-size: 12px; font-weight: 700; color: #1a1a1a; margin-bottom: 4px; }
+  .metric-desc { font-size: 12px; color: #555; line-height: 1.5; }
+  .prob { border-left: 4px solid #ef4444; background: #fff; border-radius: 0 6px 6px 0; border-top: 1px solid #ddd; border-right: 1px solid #ddd; border-bottom: 1px solid #ddd; padding: 12px 14px; margin-bottom: 8px; }
+  .sol { border-left: 4px solid #10b981; background: #fff; border-radius: 0 6px 6px 0; border-top: 1px solid #ddd; border-right: 1px solid #ddd; border-bottom: 1px solid #ddd; padding: 12px 14px; margin-bottom: 14px; }
+  .ps-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px; }
+  .ps-label.p { color: #ef4444; }
+  .ps-label.s { color: #10b981; }
+  .ps-text { font-size: 13px; color: #444; line-height: 1.6; }
+  .ps-title { font-weight: 700; color: #1a1a1a; font-size: 13px; margin-bottom: 4px; }
+  .param-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .param-table th { text-align: left; padding: 8px 10px; background: #f0f4ff; font-size: 12px; font-weight: 700; color: #444; border: 1px solid #ddd; }
+  .param-table td { padding: 8px 10px; border: 1px solid #ddd; vertical-align: top; line-height: 1.6; color: #444; }
+  .param-table tr:nth-child(even) td { background: #fafafa; }
+  .param-name { font-family: monospace; font-size: 12px; color: #1a56db; font-weight: 700; white-space: nowrap; }
+  code { font-family: monospace; background: #f0f0f0; padding: 1px 5px; border-radius: 3px; font-size: 12px; color: #c0392b; }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>GenAI Interview Prep Guide</h1>
+  <div class="subtitle">RAG · Agents · Multi-Agent · Tool & Model Selection · Eval Metrics · Parameters — Prepared for Quantiphi Interview</div>
+
+  <div class="nav">
+    <button class="active" onclick="show('rag')">RAG Fundamentals</button>
+    <button onclick="show('rag-latency')">RAG Latency</button>
+    <button onclick="show('rag-quality')">RAG Quality</button>
+    <button onclick="show('rag-eval')">RAG Eval Metrics</button>
+    <button onclick="show('rag-problems')">RAG Problems</button>
+    <button onclick="show('agents')">Single Agents</button>
+    <button onclick="show('multi')">Multi-Agent</button>
+    <button onclick="show('tools')">Tool & Model Selection</button>
+    <button onclick="show('agent-eval')">Agent Eval & Perf</button>
+    <button onclick="show('params')">Key Parameters</button>
+  </div>
+
+  <!-- RAG FUNDAMENTALS -->
+  <div id="rag" class="section active">
+    <div class="sec-title">RAG — End to End Pipeline</div>
+
+    <div class="card">
+      <div class="card-header" onclick="toggle(this)">RAG pipeline stages <span class="toggle">+</span></div>
+      <div class="card-body">
+        <p><b>Full flow:</b> Ingestion → Chunking → Embedding → Indexing → Query → Retrieval → Reranking → Augmentation → Generation → Post-processing</p>
+        <ul>
+          <li><b>Ingestion:</b> Load raw docs (PDF, HTML, DB, API). Use LangChain DocumentLoaders or LlamaIndex Readers.</li>
+          <li><b>Chunking:</b> Split into meaningful units. Strategy determines everything downstream.</li>
+          <li><b>Embedding:</b> Convert chunks to dense vectors using embedding model.</li>
+          <li><b>Indexing:</b> Store in vector DB (Pinecone, Weaviate, ChromaDB, FAISS, pgvector) with metadata.</li>
+          <li><b>Query processing:</b> Embed query, optionally rewrite or expand it first.</li>
+          <li><b>Retrieval:</b> Top-k similarity search. Can combine dense + sparse (hybrid search).</li>
+          <li><b>Reranking:</b> Cross-encoder re-ranks top-k for precision before sending to LLM.</li>
+          <li><b>Augmentation:</b> Inject retrieved context into prompt template.</li>
+          <li><b>Generation:</b> LLM generates final answer grounded in context.</li>
+          <li><b>Post-processing:</b> Citation extraction, hallucination check, output formatting.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header" onclick="toggle(this)">Chunking strategies — when to use what <span class="toggle">+</span></div>
+      <div class="card-body">
+        <ul>
+          <li><span class="tag tag-b">Fixed-size</span> Simple, fast. Use for homogeneous docs. Risk: breaks semantic boundaries. Typical: 256–512 tokens.</li>
+          <li><span class="tag tag-g">Recursive character</span> Splits paragraph → sentence → word. Best general-purpose default in LangChain. Use first.</li>
+          <li><span class="tag tag-g">Semantic chunking</span> Embeds sentences, splits where cosine similarity drops. Best quality, slower. Use for mixed-format docs.</li>
+          <li><span class="tag tag-a">Sliding window</span> Overlapping chunks (512 tokens, 50 overlap). Preserves context at boundaries. Higher storage cost.</li>
+          <li><span class="tag tag-p">Parent-child (hierarchical)</span> Small chunks for precise retrieval, parent chunk returned to LLM for context. Best of both. LlamaIndex ParentChildRetriever.</li>
+          <li><span class="tag tag-b">Document-aware</span> Markdown headers, HTML tags, PDF sections as natural split points. Best for structured content.</li>
+        </ul>
+        <p><b>Rule of thumb:</b> chunk size should match your query scope. Narrow Q&A → small chunks (256). Summarization → large chunks (1024).</p>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header" onclick="toggle(this)">Embedding models — how to choose <span class="toggle">+</span></div>
+      <div class="card-body">
+        <ul>
+          <li><span class="tag tag-g">text-embedding-3-large (OpenAI)</span> Best general-purpose. 3072-dim. Use when quality > cost.</li>
+          <li><span class="tag tag-g">BGE-M3 (BAAI)</span> Open source, multilingual, supports dense + sparse + colbert. Best open-source choice.</li>
+          <li><span class="tag tag-b">all-MiniLM-L6-v2</span> Lightweight, fast. Good for prototyping or latency-critical apps.</li>
+          <li><span class="tag tag-b">Cohere embed-v3</span> Strong for RAG, supports int8 compression, good multilingual support.</li>
+          <li><span class="tag tag-a">Domain fine-tuned</span> Always best for specialized domains. Fine-tune using sentence-transformers on triplets (query, positive, negative).</li>
+        </ul>
+        <p>Always evaluate on your actual retrieval task before committing to a model. Use MTEB benchmark or custom eval set.</p>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header" onclick="toggle(this)">Vector databases — comparison <span class="toggle">+</span></div>
+      <div class="card-body">
+        <ul>
+          <li><span class="tag tag-g">Pinecone</span> Managed, scales well, fast. Best for production with no infra team. Expensive at scale.</li>
+          <li><span class="tag tag-g">Weaviate</span> Open source + managed. Hybrid search built-in, GraphQL API, rich metadata filtering.</li>
+          <li><span class="tag tag-b">ChromaDB</span> Dev-friendly, lightweight. Great for prototyping. Limited production features.</li>
+          <li><span class="tag tag-b">pgvector</span> Postgres extension. Best if you already have Postgres. No extra infra. Limited ANN performance at scale.</li>
+          <li><span class="tag tag-a">FAISS</span> Facebook library, in-memory or disk. Fastest for batch retrieval. No built-in metadata filtering.</li>
+          <li><span class="tag tag-p">Qdrant</span> Rust-based, fast, good filtering, open source. Growing favorite for production self-hosted setups.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- RAG LATENCY -->
+  <div id="rag-latency" class="section">
+    <div class="sec-title">RAG — Reducing Latency</div>
+
+    <div class="card">
+      <div class="card-header" onclick="toggle(this)">Retrieval-side latency fixes <span class="toggle">+</span></div>
+      <div class="card-body">
+        <ul>
+          <li><span class="tag tag-g">ANN index (HNSW)</span> Use approximate nearest neighbor instead of exact search. 10–100x faster with minimal accuracy loss. Tune: <code>ef_search</code>, <code>M</code>, <code>ef_construction</code>.</li>
+          <li><span class="tag tag-g">Reduce embedding dimensions</span> Use Matryoshka embeddings (OpenAI text-3) — truncate to 256 or 512 dims. 4x faster with ~2% quality drop.</li>
+          <li><span class="tag tag-b">Scalar quantization (int8)</span> Compress float32 → int8. 4x memory reduction, 2–4x faster retrieval. Cohere embed-v3 natively supports this.</li>
+          <li><span class="tag tag-b">Binary quantization</span> Extreme compression — 32x smaller. Use with oversampling + rerank to recover quality. Supported in Pinecone, Weaviate.</li>
+          <li><span class="tag tag-a">Metadata pre-filtering</span> Filter by date, category, user_id before vector search. Dramatically reduces search space. High-cardinality filters in metadata, not vectors.</li>
+          <li><span class="tag tag-p">Semantic query cache</span> Cache query embeddings + results for repeated/similar queries. Redis + GPTCache. Best for FAQ-style workloads.</li>
+          <li><span class="tag tag-b">Async parallel retrieval</span> Multiple sources → run concurrently with <code>asyncio.gather()</code>. Never await sequentially if retrievals are independent.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header" onclick="toggle(this)">Generation-side latency fixes <span class="toggle">+</span></div>
+      <div class="card-body">
+        <ul>
+          <li><span class="tag tag-g">Streaming responses</span> <code>stream=True</code> — show tokens as they generate. UX feels instant even if TTFT is same. Critical for user-facing apps.</li>
+          <li><span class="tag tag-g">Smaller context window</span> Reduce retrieved chunks. Each extra token costs time. Top-3 beats top-10 if reranking quality is high.</li>
+          <li><span class="tag tag-b">Smaller/faster model</span> GPT-4o-mini or Claude Haiku for simple RAG QA. Reserve large models for complex synthesis. Route by query complexity.</li>
+          <li><span class="tag tag-b">Prompt compression</span> Use LLMLingua to compress retrieved context 3–5x before LLM. Reduces tokens without losing key info.</li>
+          <li><span class="tag tag-a">KV / prompt caching</span> Cache static system prompt + context prefix. Anthropic prompt caching saves 85%+ latency + cost on repeated prefixes.</li>
+          <li><span class="tag tag-p">Speculative decoding</span> Small draft model generates tokens, large model verifies. 2–3x speedup. Groq hardware implements natively.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header" onclick="toggle(this)">Architecture-level latency fixes <span class="toggle">+</span></div>
+      <div class="card-body">
+        <ul>
+          <li><span class="tag tag-g">Pre-compute embeddings</span> Embed all docs at ingestion time. Only query embedding happens at runtime. Never embed on the fly.</li>
+          <li><span class="tag tag-b">Connection pooling</span> Reuse vector DB connections. Cold connections add 50–200ms. Persistent clients, not per-request instantiation.</li>
+          <li><span class="tag tag-b">Colocate services</span> Vector DB + LLM API in same cloud region. Cross-region adds 100–300ms easily.</li>
+          <li><span class="tag tag-a">Async end-to-end</span> FastAPI async routes + async LLM calls + async DB queries. Never block the event loop.</li>
+          <li><span class="tag tag-p">Two-stage retrieval</span> Fast coarse retrieval (BM25 or small model) → rerank with expensive model only top 20. Two-stage beats one expensive stage.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- RAG QUALITY -->
+  <div id="rag-quality" class="section">
+    <div class="sec-title">RAG — Improving Result Quality</div>
+
+    <div class="card">
+      <div class="card-header" onclick="toggle(this)">Query-side improvements <span class="toggle">+</span></div>
+      <div class="card-body">
+        <ul>
+          <li><span class="tag tag-g">HyDE (Hypothetical Document Embeddings)</span> LLM generates a hypothetical answer first, embed that instead of raw query. Dramatically improves retrieval for short/vague queries.</li>
+          <li><span class="tag tag-g">Query rewriting</span> LLM rewrites user query to be retrieval-friendly. "What's the cap?" → "What is the maximum limit for the X feature in product Y?"</li>
+          <li><span class="tag tag-b">Multi-query retrieval</span> Generate 3–5 query variants, retrieve for each, deduplicate. Broader coverage, catches synonyms and phrasings.</li>
+          <li><span class="tag tag-b">Step-back prompting</span> Generalize the specific query to a broader question, retrieve on both. Helps when answer requires background context.</li>
+          <li><span class="tag tag-a">Query decomposition</span> Break complex multi-part query into sub-questions. Answer each independently, combine. Good for analytical queries.</li>
+          <li><span class="tag tag-p">Query routing</span> Classify query first (FAQ, analytical, procedural), route to different retrievers or prompts. Improves precision per query type.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header" onclick="toggle(this)">Retrieval improvements <span class="toggle">+</span></div>
+      <div class="card-body">
+        <ul>
+          <li><span class="tag tag-g">Hybrid search</span> Combine dense (semantic) + sparse (BM25/keyword). Use Reciprocal Rank Fusion (RRF) to merge. Handles both semantic and keyword matches.</li>
+          <li><span class="tag tag-g">Reranking</span> Cross-encoders (Cohere Rerank, BGE Reranker, ColBERT) re-score top-k. 20–40% precision improvement. Always add this layer.</li>
+          <li><span class="tag tag-b">Contextual compression</span> LLM extracts only relevant sentences from each retrieved chunk before generation. Removes noise.</li>
+          <li><span class="tag tag-b">Parent-child retrieval</span> Retrieve small chunks for precision, pass parent chunk to LLM for full context. Best for long documents.</li>
+          <li><span class="tag tag-a">Metadata filtering</span> Structured filters (date range, doc type, department) alongside vector search. Don't let vector do all the work.</li>
+          <li><span class="tag tag-p">Knowledge graph hybrid</span> Combine vector retrieval with graph traversal. Captures entity relationships that dense vectors miss. Complex interconnected domains.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header" onclick="toggle(this)">Generation improvements <span class="toggle">+</span></div>
+      <div class="card-body">
+        <ul>
+          <li><span class="tag tag-g">Citation grounding</span> Instruct LLM to cite [chunk_id] for each claim. Enables verification, reduces hallucination.</li>
+          <li><span class="tag tag-g">Strong system prompt</span> "Only answer using the provided context. If the answer is not in the context, say you don't know." Explicit instruction dramatically reduces hallucination.</li>
+          <li><span class="tag tag-b">Chain-of-thought</span> Ask LLM to reason step-by-step before answering. Reduces errors on complex retrievals.</li>
+          <li><span class="tag tag-a">Iterative RAG / FLARE</span> LLM generates answer, pauses when uncertain, triggers another retrieval, continues. Best for complex multi-hop questions.</li>
+          <li><span class="tag tag-p">Corrective RAG (CRAG)</span> Evaluate retrieved docs — if low relevance, fall back to web search or broader corpus. Self-correcting pipeline.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- RAG EVAL -->
+  <div id="rag-eval" class="section">
+    <div class="sec-title">RAG — Evaluation Metrics</div>
+
+    <div class="sec-title">Retrieval metrics</div>
+    <div class="metric-grid">
+      <div class="metric-card"><div class="metric-name">Precision@k</div><div class="metric-desc">Of top-k retrieved chunks, what fraction are relevant? Measures retrieval precision.</div></div>
+      <div class="metric-card"><div class="metric-name">Recall@k</div><div class="metric-desc">Of all relevant chunks, what fraction were retrieved? Measures coverage.</div></div>
+      <div class="metric-card"><div class="metric-name">MRR</div><div class="metric-desc">Mean Reciprocal Rank. How high does the first relevant result appear? Best for single-answer scenarios.</div></div>
+      <div class="metric-card"><div class="metric-name">NDCG@k</div><div class="metric-desc">Normalized Discounted Cumulative Gain. Quality weighted by position. Best for ranked retrieval.</div></div>
+      <div class="metric-card"><div class="metric-name">Hit Rate</div><div class="metric-desc">Did at least one relevant chunk appear in top-k? Simpler than recall but still useful.</div></div>
+    </div>
+
+    <div class="sec-title">Generation metrics</div>
+    <div class="metric-grid">
+      <div class="metric-card"><div class="metric-name">Faithfulness</div><div class="metric-desc">Is the answer supported by retrieved context? The key anti-hallucination metric. RAGAS measures this.</div></div>
+      <div class="metric-card"><div class="metric-name">Answer Relevance</div><div class="metric-desc">Is the answer relevant to the question? Catches responses that are faithful but off-topic.</div></div>
+      <div class="metric-card"><div class="metric-name">Context Precision</div><div class="metric-desc">Are the retrieved chunks actually relevant to answer the question? Diagnoses retrieval noise.</div></div>
+      <div class="metric-card"><div class="metric-name">Context Recall</div><div class="metric-desc">Does retrieved context contain all info needed? Diagnoses retrieval gaps.</div></div>
+      <div class="metric-card"><div class="metric-name">ROUGE / BLEU</div><div class="metric-desc">N-gram overlap with reference answer. Useful but limited — doesn't capture semantic equivalence.</div></div>
+      <div class="metric-card"><div class="metric-name">BERTScore</div><div class="metric-desc">Semantic similarity between generated and reference using BERT. Better than ROUGE for meaning.</div></div>
+    </div>
+
+    <div class="sec-title">Eval frameworks</div>
+    <div class="card" style="margin-top:0">
+      <div class="card-body open" style="border-top:none">
+        <ul>
+          <li><span class="tag tag-g">RAGAS</span> End-to-end RAG evaluation. Faithfulness, answer relevance, context precision/recall. LLM-based — no human labels needed. Most asked about in interviews.</li>
+          <li><span class="tag tag-b">TruLens</span> RAG Triad: answer relevance + context relevance + groundedness. Good observability dashboard.</li>
+          <li><span class="tag tag-b">DeepEval</span> Unit-test style for LLM outputs. Define metrics as assertions. Good for CI/CD integration.</li>
+          <li><span class="tag tag-a">LangSmith</span> Tracing + evaluation for LangChain apps. Debug retrieval step-by-step in production.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- RAG PROBLEMS -->
+  <div id="rag-problems" class="section">
+    <div class="sec-title">RAG — Real Problems & Solutions</div>
+
+    <div class="prob"><div class="ps-label p">Problem 1</div><div class="ps-title">Retrieval returns wrong or irrelevant chunks</div><div class="ps-text">Query and document are in different semantic spaces. Embedding model not suited for domain. Short queries have weak embeddings.</div></div>
+    <div class="sol"><div class="ps-label s">Solutions</div><div class="ps-text">1. Add HyDE — embed hypothetical answer instead of raw query. 2. Fine-tune embedding model on domain-specific pairs. 3. Switch to hybrid search (BM25 + dense). 4. Add reranking to fix rank order. 5. Evaluate embedding model on your custom eval set.</div></div>
+
+    <div class="prob"><div class="ps-label p">Problem 2</div><div class="ps-title">LLM hallucinates despite correct context being retrieved</div><div class="ps-text">LLM ignores context and generates from parametric memory. Too much context confuses the model. Context buried in middle of long prompt (lost-in-the-middle problem).</div></div>
+    <div class="sol"><div class="ps-label s">Solutions</div><div class="ps-text">1. Stronger system prompt: "Only use the provided context." 2. Reduce context size — rerank, pass only top 3. 3. Put most relevant chunk first or last (not middle). 4. Contextual compression to remove noise. 5. Switch to model with better instruction following (Claude is better than GPT-4 for faithfulness).</div></div>
+
+    <div class="prob"><div class="ps-label p">Problem 3</div><div class="ps-title">Answer requires info from multiple chunks (multi-hop)</div><div class="ps-text">Single retrieval step doesn't capture cross-document reasoning. "What is A's relationship with B?" may need 3 separate retrieved facts combined.</div></div>
+    <div class="sol"><div class="ps-label s">Solutions</div><div class="ps-text">1. Iterative RAG / FLARE — retrieve, generate partial answer, retrieve again. 2. Query decomposition — break into sub-questions. 3. Knowledge graph — traverse entity relationships. 4. Agentic RAG — agent decides when to retrieve again.</div></div>
+
+    <div class="prob"><div class="ps-label p">Problem 4</div><div class="ps-title">Chunking breaks semantic units</div><div class="ps-text">Fixed-size chunking splits tables, code blocks, structured data mid-way. Retrieved chunk is meaningless without surrounding context.</div></div>
+    <div class="sol"><div class="ps-label s">Solutions</div><div class="ps-text">1. Document-aware splitting (markdown headers, HTML tags). 2. Parent-child retrieval — retrieve small chunk, return full parent. 3. Sliding window with overlap. 4. Semantic chunking to detect natural boundaries. 5. Special handlers for tables — extract to structured format before chunking.</div></div>
+
+    <div class="prob"><div class="ps-label p">Problem 5</div><div class="ps-title">Retrieval is slow in production (&gt;1 second)</div><div class="ps-text">Large vector index, high-dim embeddings, no caching, synchronous pipeline, cold DB connections.</div></div>
+    <div class="sol"><div class="ps-label s">Solutions</div><div class="ps-text">1. ANN index (HNSW) — tune ef_search. 2. Quantize embeddings (int8 or binary). 3. Semantic query cache (Redis + GPTCache). 4. Async parallel retrieval. 5. Reduce top-k (top-5 not top-20). 6. Pre-filter with metadata before vector search.</div></div>
+
+    <div class="prob"><div class="ps-label p">Problem 6</div><div class="ps-title">Knowledge base goes stale</div><div class="ps-text">New documents added but embeddings not updated. Users get outdated answers. Manual re-ingestion is slow and error-prone.</div></div>
+    <div class="sol"><div class="ps-label s">Solutions</div><div class="ps-text">1. Incremental indexing — only embed changed/new docs. Track doc hashes. 2. Timestamp metadata + recency bias in retrieval scoring. 3. Event-driven pipeline — trigger re-embedding on doc change (Kafka, webhooks). 4. Separate "hot" index (recent) from "cold" archive, merge results at retrieval time.</div></div>
+  </div>
+
+  <!-- SINGLE AGENTS -->
+  <div id="agents" class="section">
+    <div class="sec-title">Single Agents — Architecture & Patterns</div>
+
+    <div class="card">
+      <div class="card-header" onclick="toggle(this)">Agent architectures — ReAct vs Plan-and-Execute vs others <span class="toggle">+</span></div>
+      <div class="card-body">
+        <ul>
+          <li><span class="tag tag-g">ReAct (Reason + Act)</span> Interleave reasoning and action in a loop: Thought → Action → Observation → repeat. Most common. Good for tool-using agents with dynamic decisions. Used in LangChain AgentExecutor.</li>
+          <li><span class="tag tag-g">Plan-and-Execute</span> Planner LLM creates full plan upfront. Executor carries it out step by step. More predictable, better for complex multi-step tasks. Can use separate cheaper model for planning.</li>
+          <li><span class="tag tag-b">Reflexion</span> Agent self-reflects on failure, generates verbal feedback, retries. Improves on mistakes without gradient updates. Good for tasks with clear success criteria.</li>
+          <li><span class="tag tag-b">Structured output agent</span> LLM outputs structured JSON (tool call params), deterministic execution. Less flexible but more reliable. OpenAI function calling implements this.</li>
+          <li><span class="tag tag-a">LATS (Language Agent Tree Search)</span> Monte Carlo Tree Search for agents. Explores multiple action paths, backtracks on failure. Expensive but accurate for analytical tasks.</li>
+          <li><span class="tag tag-p">Self-RAG</span> Agent decides when to retrieve, what to retrieve, and evaluates retrieved content quality before using it. Best quality for retrieval-heavy agents.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header" onclick="toggle(this)">Agent memory types <span class="toggle">+</span></div>
+      <div class="card-body">
+        <ul>
+          <li><span class="tag tag-b">In-context (short-term)</span> Conversation history in prompt. Fastest, limited by context window. Truncate intelligently — keep recent + summarize old.</li>
+          <li><span class="tag tag-g">External vector memory (long-term)</span> Vector store of past interactions. Retrieve relevant history per query. Enables persistent memory across sessions.</li>
+          <li><span class="tag tag-a">Entity memory</span> Extract and store facts about entities (people, companies) separately. Look up per entity on each turn. LangChain EntityMemory.</li>
+          <li><span class="tag tag-p">Episodic memory</span> Store past successful task executions as examples. Retrieve similar episodes for few-shot grounding. Best for repetitive task agents.</li>
+          <li><span class="tag tag-b">Procedural memory</span> The model weights themselves — what the agent knows how to do. Updated via fine-tuning, not prompting.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header" onclick="toggle(this)">Agent failure modes and fixes <span class="toggle">+</span></div>
+      <div class="card-body">
+        <ul>
+          <li><span class="tag tag-r">Infinite loops</span> Agent keeps calling same tool. Fix: max_iterations limit, track tool call history, detect repeated action patterns.</li>
+          <li><span class="tag tag-r">Tool hallucination</span> Agent invents tool arguments or calls non-existent tools. Fix: strict JSON schema validation, tool call verification layer.</li>
+          <li><span class="tag tag-r">Context window overflow</span> Long agent traces exceed context. Fix: summarize intermediate steps, external memory, scratchpad truncation.</li>
+          <li><span class="tag tag-r">Getting stuck</span> Agent can't decide next step. Fix: explicit fallback tool, timeout + human escalation, Reflexion retry with different approach.</li>
+          <li><span class="tag tag-r">Prompt injection via tools</span> Malicious tool output manipulates agent. Fix: sanitize tool outputs, sandboxed execution, validate actions before running.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- MULTI-AGENT -->
+  <div id="multi" class="section">
+    <div class="sec-title">Multi-Agent Systems</div>
+
+    <div class="card">
+      <div class="card-header" onclick="toggle(this)">Multi-agent patterns — when to use what <span class="toggle">+</span></div>
+      <div class="card-body">
+        <ul>
+          <li><span class="tag tag-g">Orchestrator-Worker</span> Central orchestrator delegates subtasks to specialized worker agents. Tracks progress, aggregates results. LangGraph, CrewAI. Best for defined pipelines.</li>
+          <li><span class="tag tag-g">Hierarchical</span> Manager → team lead agents → worker agents. Scales to complex tasks. Risk: communication overhead and error propagation between layers.</li>
+          <li><span class="tag tag-b">Peer-to-peer / debate</span> Agents interact directly, challenge each other's outputs. Better reasoning quality. Expensive. AutoGen implements this pattern.</li>
+          <li><span class="tag tag-b">Sequential pipeline</span> Agent A output → Agent B input → Agent C input. Simple, debuggable. Good for document processing pipelines.</li>
+          <li><span class="tag tag-a">Event-driven</span> Agents publish/subscribe to events. Loose coupling. Good for async, long-running tasks. Kafka + agent workers.</li>
+          <li><span class="tag tag-p">Mixture of Experts (routing)</span> Router classifies task, sends to specialist agent. Each specialist optimized for its domain. No wasted compute on generalist.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header" onclick="toggle(this)">Multi-agent complexities and how to tackle them <span class="toggle">+</span></div>
+      <div class="card-body">
+        <ul>
+          <li><span class="tag tag-r">State synchronization</span> Multiple agents modifying shared state → race conditions. Fix: centralized state store (Redis, DB), optimistic locking, event sourcing.</li>
+          <li><span class="tag tag-r">Error propagation</span> One agent fails, cascades through pipeline. Fix: checkpoint state between agents, retry with backoff, fallback paths, explicit error contracts.</li>
+          <li><span class="tag tag-r">Communication overhead</span> Too many agent hops add latency. Fix: batch messages, compress intermediate outputs, use shared memory instead of passing full context.</li>
+          <li><span class="tag tag-r">Conflicting outputs</span> Two agents give contradictory answers. Fix: conflict resolution agent, voting mechanism, confidence scoring per agent.</li>
+          <li><span class="tag tag-r">Cost explosion</span> Each agent call costs tokens. Fix: small models for workers, large model only for orchestrator. Cache intermediate results aggressively.</li>
+          <li><span class="tag tag-r">Debugging</span> Hard to trace which agent caused wrong output. Fix: full trace logging (LangSmith), unique trace IDs per agent, structured agent logs.</li>
+          <li><span class="tag tag-a">Human in the loop</span> For high-stakes actions (send email, execute DB write), pause and get human approval. LangGraph supports interrupt() pattern natively.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header" onclick="toggle(this)">Frameworks — which one to use <span class="toggle">+</span></div>
+      <div class="card-body">
+        <ul>
+          <li><span class="tag tag-g">LangGraph</span> State machine for agents. Best for complex branching workflows needing fine control. Supports cycles, human-in-the-loop, checkpointing. Production-grade.</li>
+          <li><span class="tag tag-b">CrewAI</span> Role-based multi-agent. Define agents with roles/goals, let them collaborate. Good for simulating team workflows. Simpler than LangGraph.</li>
+          <li><span class="tag tag-b">AutoGen (Microsoft)</span> Conversation-based multi-agent. Agents talk to each other. Great for debate, code review patterns. Research-oriented.</li>
+          <li><span class="tag tag-a">LangChain AgentExecutor</span> Simpler single-agent with tools. Good starting point but less control. Don't use for complex multi-hop workflows.</li>
+          <li><span class="tag tag-p">Semantic Kernel</span> Microsoft SDK. Good for enterprise .NET + Python hybrid apps. Strong plugin/tool ecosystem.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOOL & MODEL SELECTION -->
+  <div id="tools" class="section">
+    <div class="sec-title">Tool Design & Model Selection</div>
+
+    <div class="card">
+      <div class="card-header" onclick="toggle(this)">How to design good tools for agents <span class="toggle">+</span></div>
+      <div class="card-body">
+        <ul>
+          <li><span class="tag tag-g">Single responsibility</span> Each tool does exactly one thing. <code>search_database()</code> not <code>search_and_process_and_format()</code>. Easier to test, more reliable function calling.</li>
+          <li><span class="tag tag-g">Descriptive docstrings</span> LLM reads tool description to decide when to use it. "Search the internal knowledge base for product documentation" beats "search docs". Description IS half the tool.</li>
+          <li><span class="tag tag-b">Typed parameters (Pydantic)</span> Use Pydantic models for tool inputs. LLM gets schema, validation happens automatically. Never accept freeform strings where structured params work.</li>
+          <li><span class="tag tag-b">Return structured output</span> Return JSON/dict, not raw strings. Agent can reliably parse results. Always include success/error field.</li>
+          <li><span class="tag tag-a">Limit tool count</span> More than 10–15 tools degrades tool selection accuracy. Group related tools. Use sub-agents for specialized toolsets.</li>
+          <li><span class="tag tag-p">Observability hooks</span> Log every tool call: inputs, outputs, latency, errors. Essential for debugging. LangSmith or custom structured logging.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header" onclick="toggle(this)">Model selection — which LLM for what <span class="toggle">+</span></div>
+      <div class="card-body">
+        <ul>
+          <li><span class="tag tag-g">GPT-4o</span> Best for complex reasoning, multi-step tool use, code generation. High function-calling accuracy. Go-to for orchestrator agents.</li>
+          <li><span class="tag tag-g">Claude 3.5 Sonnet / Opus</span> Best for long-context tasks (200k window), instruction following, structured output. Better at NOT hallucinating when told not to. Best for faithfulness-critical RAG.</li>
+          <li><span class="tag tag-b">GPT-4o-mini / Claude Haiku</span> Fast, cheap. Use for worker agents, simple classification, extraction tasks. Route simple queries here, complex to larger model.</li>
+          <li><span class="tag tag-b">Gemini 1.5 Pro</span> Best for very long context (1M tokens). Use for summarizing huge doc corpora, video/audio analysis tasks.</li>
+          <li><span class="tag tag-a">Mistral / Llama 3</span> Open source, self-hosted. Use when data privacy/sovereignty is required. Can't send data to external API. Fine-tune on your domain.</li>
+        </ul>
+        <p style="margin-top:8px"><b>Decision framework:</b> Capability requirement → latency budget → cost per query → data residency constraints → pick model.</p>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header" onclick="toggle(this)">Dynamic model routing at runtime <span class="toggle">+</span></div>
+      <div class="card-body">
+        <ul>
+          <li>Classify query complexity (simple / medium / complex) using small classifier or rule-based check.</li>
+          <li><b>Simple</b> (FAQ, single fact): GPT-4o-mini or Haiku. ~10ms add, 0.1¢ cost.</li>
+          <li><b>Medium</b> (multi-step, some reasoning): GPT-4o or Sonnet.</li>
+          <li><b>Complex</b> (code, multi-hop, long doc): GPT-4o or Claude Opus.</li>
+          <li>Implement with RouteLLM (open source) or custom classification layer.</li>
+          <li>Measure: cost per query, accuracy per tier, fallback rate. Tune thresholds on real traffic data.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- AGENT EVAL & PERF -->
+  <div id="agent-eval" class="section">
+    <div class="sec-title">Agent Evaluation & Performance</div>
+
+    <div class="card">
+      <div class="card-header" onclick="toggle(this)">Agent evaluation metrics <span class="toggle">+</span></div>
+      <div class="card-body">
+        <ul>
+          <li><span class="tag tag-g">Task success rate</span> Did agent complete the task correctly? Binary for simple tasks, rubric-scored for complex. Most important metric.</li>
+          <li><span class="tag tag-g">Tool call accuracy</span> Did agent call right tool with correct params? Compare to ground truth tool calls. Measures planning quality.</li>
+          <li><span class="tag tag-b">Step efficiency</span> How many steps to complete task? Fewer = better. Penalize infinite loops and redundant calls.</li>
+          <li><span class="tag tag-b">Trajectory similarity</span> Compare agent action sequence to ideal trajectory. Edit distance metric. Measures reasoning quality, not just outcome.</li>
+          <li><span class="tag tag-a">Latency per task</span> End-to-end time. Break down by LLM calls, tool calls, retrieval. Identify bottleneck per component.</li>
+          <li><span class="tag tag-a">Cost per task</span> Total tokens × price. Track by model, task type, agent role. Required for production ROI analysis.</li>
+          <li><span class="tag tag-p">LLM-as-judge</span> GPT-4/Claude evaluates agent output quality. Define rubric clearly. Consistent but biased toward similar model outputs. Use cautiously.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header" onclick="toggle(this)">Agent latency reduction <span class="toggle">+</span></div>
+      <div class="card-body">
+        <ul>
+          <li><span class="tag tag-g">Parallelize independent tool calls</span> If agent needs weather AND calendar, call both simultaneously with <code>asyncio.gather()</code>. Single biggest win for multi-tool agents.</li>
+          <li><span class="tag tag-g">Cache tool results</span> Repeated tool calls within session return cached result. Redis with TTL. Especially valuable for DB lookups and API calls.</li>
+          <li><span class="tag tag-b">Reduce reasoning steps</span> Better system prompt reduces unnecessary thinking. Plan-and-Execute more efficient than ReAct for predictable tasks.</li>
+          <li><span class="tag tag-b">Smaller model for planning</span> Cheap model generates plan, expensive model only for complex execution steps. Hybrid orchestration.</li>
+          <li><span class="tag tag-a">Prompt / KV caching</span> Cache system prompt + tools schema. Anthropic prompt caching, OpenAI context caching. Saves 85%+ on repeated prefix tokens.</li>
+          <li><span class="tag tag-p">Stream intermediate results</span> Show users partial results as sub-tasks complete. Feels much faster even with same total wall-clock time.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header" onclick="toggle(this)">Improving agent performance <span class="toggle">+</span></div>
+      <div class="card-body">
+        <ul>
+          <li><span class="tag tag-g">Better system prompt</span> Describe agent role, constraints, output format explicitly. Include few-shot examples of correct tool use. Biggest ROI change possible.</li>
+          <li><span class="tag tag-g">Fine-tune on agent trajectories</span> Collect successful task traces → fine-tune smaller model on them. Match GPT-4 accuracy at Llama 3 cost for domain-specific tasks.</li>
+          <li><span class="tag tag-b">Tool description quality</span> Rewrite tool descriptions based on cases where agent chose wrong tool. A/B test descriptions. Often 10–20% accuracy lift with zero code change.</li>
+          <li><span class="tag tag-b">Constrain action space</span> Don't give agent tools it can't use in current context. Dynamic tool injection based on task type. Fewer choices = better decisions.</li>
+          <li><span class="tag tag-a">Structured outputs</span> Force JSON for tool selection. Remove ambiguity. OpenAI structured outputs, Outlines library for open-source models.</li>
+          <li><span class="tag tag-p">Eval-driven iteration</span> Build eval suite first. Measure baseline. Make one change. Measure again. Never ship without evaluating. Same discipline as software testing.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- KEY PARAMETERS -->
+  <div id="params" class="section">
+    <div class="sec-title">Key Parameters — What Value, When & Why</div>
+
+    <div class="sec-title">LLM generation parameters</div>
+    <table class="param-table">
+      <tr><th>Parameter</th><th>Range</th><th>When to use what value</th></tr>
+      <tr><td class="param-name">temperature</td><td>0.0 – 2.0</td><td><b>0.0</b> = deterministic, factual. Use for RAG, QA, extraction, tool-calling. <b>0.7</b> = balanced default. <b>0.9–1.0</b> = creative writing, brainstorming. Never high for agent tool-calling — they hallucinate arguments.</td></tr>
+      <tr><td class="param-name">top_p</td><td>0.0 – 1.0</td><td>Nucleus sampling. Keep at <b>1.0</b> when using temperature. If using top_p as primary control, set temperature=1.0. <b>0.1</b> = very conservative. <b>0.95</b> = permissive. Don't tune both simultaneously — redundant.</td></tr>
+      <tr><td class="param-name">max_tokens</td><td>varies</td><td>Set tight based on expected output. Too high wastes money. RAG answers: <b>512–1024</b>. Code gen: <b>2048+</b>. Summaries: target_length × 1.3.</td></tr>
+      <tr><td class="param-name">frequency_penalty</td><td>0.0 – 2.0</td><td><b>0.3–0.5</b> reduces repetition of tokens. Use when output sounds repetitive. Too high → incoherent output. Keep at 0 for factual tasks.</td></tr>
+      <tr><td class="param-name">presence_penalty</td><td>0.0 – 2.0</td><td><b>0.3–0.6</b> encourages novel topics in brainstorming. Keep at 0 for grounded/factual tasks — you don't want the model wandering off-topic.</td></tr>
+      <tr><td class="param-name">seed</td><td>integer</td><td>Set fixed seed during evaluation runs for reproducibility. Not for production — users expect variety.</td></tr>
+    </table>
+
+    <div class="sec-title">Retrieval parameters</div>
+    <table class="param-table">
+      <tr><th>Parameter</th><th>Typical range</th><th>When to use what value</th></tr>
+      <tr><td class="param-name">top_k</td><td>3 – 20</td><td><b>5–10</b> for initial retrieval when reranking follows. <b>3–5</b> for direct LLM injection without reranking. Higher = more recall, more noise, higher latency. Reranking pipeline: retrieve 20, pass top 3.</td></tr>
+      <tr><td class="param-name">similarity threshold</td><td>0.5 – 0.9</td><td><b>0.7+</b> filters weak matches. <b>0.5</b> is permissive. Tune on your eval set. Too high = recall suffers. Too low = noise in context. Test both extremes first.</td></tr>
+      <tr><td class="param-name">chunk_size</td><td>256 – 1024 tokens</td><td><b>256–512</b> for precise Q&A retrieval. <b>512–1024</b> for richer context per chunk. Smaller = more precise retrieval. Larger = more context per chunk. Test both, measure faithfulness + context recall.</td></tr>
+      <tr><td class="param-name">chunk_overlap</td><td>10–20% of chunk size</td><td><b>50–100 tokens</b> overlap for 512-token chunks. Prevents context loss at boundaries. Higher overlap = more storage, more redundant retrieval results.</td></tr>
+      <tr><td class="param-name">ef_search (HNSW)</td><td>50 – 500</td><td>Controls recall vs speed in ANN search. Higher = better recall, slower. Start at <b>50–100</b>. Tune by measuring recall@k vs latency tradeoff on your actual dataset.</td></tr>
+      <tr><td class="param-name">alpha (hybrid search)</td><td>0.0 – 1.0</td><td>Weight between dense (α=1) and sparse (α=0). <b>0.5</b> balanced. <b>0.75</b> leans dense. Keyword-heavy queries need lower alpha. Tune based on your query distribution.</td></tr>
+    </table>
+
+    <div class="sec-title">Agent parameters</div>
+    <table class="param-table">
+      <tr><th>Parameter</th><th>Typical range</th><th>When to use what value</th></tr>
+      <tr><td class="param-name">max_iterations</td><td>5 – 20</td><td>Hard stop for agent loops. <b>10–20</b> for complex tasks. <b>5–10</b> for simple. Always set — no safety net without it. Log when limit is hit.</td></tr>
+      <tr><td class="param-name">max_execution_time</td><td>30s – 10min</td><td><b>30s</b> for interactive user-facing. <b>5–10min</b> for background tasks. Return partial result on timeout, don't fail silently.</td></tr>
+      <tr><td class="param-name">memory_window</td><td>10 – 30 messages</td><td><b>10–20</b> for chat agents. Summarize older messages instead of truncating. Controls context window usage directly.</td></tr>
+      <tr><td class="param-name">tool_choice</td><td>auto/required/none</td><td><b>auto</b>: model decides. <b>required</b>: forces tool use, use when you always need structured output. <b>none</b>: forces text response, use for pure reasoning steps.</td></tr>
+    </table>
+  </div>
+
+</div>
+
+<script>
+function show(id) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav button').forEach(b => b.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  event.target.classList.add('active');
+  window.scrollTo(0, 0);
+}
+function toggle(el) {
+  const body = el.nextElementSibling;
+  const isOpen = body.classList.contains('open');
+  body.classList.toggle('open', !isOpen);
+  el.querySelector('.toggle').textContent = isOpen ? '+' : '−';
+}
+</script>
+</body>
+</html>
